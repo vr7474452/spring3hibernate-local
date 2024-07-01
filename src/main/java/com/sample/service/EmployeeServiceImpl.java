@@ -21,7 +21,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 	public void addEmployee(Employee employee) {
 		try{
 			
-		} catch (Exception e){
+		} catch (Exceptio e){
 			
 		}
 		employeeDao.addEmployee(employee);
