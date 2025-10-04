@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent slave
 
     environment {
         GIT_URL = "https://github.com/opstree/spring3hibernate.git"
