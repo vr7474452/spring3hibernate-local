@@ -1,0 +1,99 @@
+pipeline {
+    agent { label 'slave2' }
+
+    environment {
+        GIT_URL = "https://github.com/opstree/spring3hibernate.git"
+    }
+
+    parameters {
+        string(name: 'BRANCH', defaultValue: 'master', description: 'Add branch name')
+        choice(name: 'ENV', choices: ['Dev', 'Stage', 'Prod'], description: 'Pick environment')
+        booleanParam(name: 'SKIP_TEST', defaultValue: false, description: 'Skip test?')
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: "${params.BRANCH}", url: "${env.GIT_URL}"
+            }
+        }
+
+        stage('Compile') {
+            steps {
+                sh 'mvn compile'
+            }
+        }
+
+        stage('Show Versions') {
+            steps {
+                echo "Displaying Java and Maven versions"
+                sh 'java -version'
+                sh 'mvn -version'
+            }
+        }
+
+        stage('Parallel Stage') {
+            parallel {
+
+                stage('Gitleaks Scan') {
+                    steps {
+                        echo "Running Gitleaks scan for secrets"
+                        sh 'gitleaks detect --source . --report-path=gitleaks-report.json || true'
+                        archiveArtifacts artifacts: 'gitleaks-report.json', fingerprint: true, allowEmptyArchive: true
+                    }
+                }
+
+                stage('Testing') {
+                    when {
+                        expression { return !params.SKIP_TEST }
+                    }
+                    steps {
+                        echo "Running Tests"
+                        sh 'mvn test'
+                    }
+                }
+            }
+        }
+
+        stage('Approval') {
+            steps {
+                script {
+                    input message: 'Do you approve to proceed with the Build?', ok: 'Proceed', cancel: 'Abort'
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn clean install -DskipTests -Ddependency-check.skip=true'
+            }
+        }
+
+        stage('Create Tag (Demo)') {
+            steps {
+                script {
+                    def tagName = "spring3hibernate-v${env.BUILD_NUMBER}"
+                    echo "Creating local tag for ${env.GIT_URL} -> ${tagName}"
+                    sh """ 
+                        git fetch --tags
+                        git tag ${tagName}
+                        git show-ref --tags | grep ${tagName} || echo "Tag ${tagName} created locally"
+                    """ 
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Pipeline execution finished."
+        }
+        success {
+            echo "Pipeline executed successfully. Build completed."
+        }
+        failure {
+            echo "Pipeline failed. Please check the logs for details."
+        }
+    }
+}
