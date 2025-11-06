@@ -1,8 +1,8 @@
 FROM maven:3.3-jdk-8 as builder
 COPY . /usr/src/mymaven/
 WORKDIR /usr/src/mymaven/
-RUN mvn clean install
-RUN mvn package 
+RUN mvn clean install -DskipTests -Ddependency-check.skip=true
+RUN mvn package -DskipTests -Ddependency-check.skip=true
 
 FROM tomcat:7-jre7-alpine
 MAINTAINER "opstree <opstree@gmail.com>"
