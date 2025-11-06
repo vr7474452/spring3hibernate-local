@@ -34,6 +34,10 @@ docker rmi -f $(docker images -q)
 docker network prune -f
 docker volume prune -f
 ```
+### git clone
+```
+git clone https://github.com/opstree/spring3hibernate.git
+```
 
 ### Folder structure
 ```
