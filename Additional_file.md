@@ -1,7 +1,3 @@
-```
-https://chatgpt.com/s/t_690c882f49e881918b32690c445e3a01
-```
-
 ### docker installation
 ```
 sudo reboot
@@ -24,6 +20,10 @@ sudo systemctl enable docker
 sudo systemctl start docker
 sudo usermod -aG docker $USER
 newgrp docker
+```
+### Assignment2 Part 1
+```
+https://chatgpt.com/s/t_690c882f49e881918b32690c445e3a01
 ```
 
 ### Clean the docker environment
